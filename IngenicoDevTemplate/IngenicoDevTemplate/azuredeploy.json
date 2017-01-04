@@ -51,7 +51,7 @@
     "DevVMName": "[concat('DevDotNet', parameters('DevVMAdminUserName'))]",
     "DevVMImagePublisher": "MicrosoftWindowsServer",
     "DevVMImageOffer": "WindowsServer",
-    "DevVMOSDiskName": "DevVMOSDisk",
+    "DevVMOSDiskName": "[concat(variables('DevVMName'), 'OSDisk')]",
     "DevVMVmSize": "Standard_DS3_v2",
     "DevVMVnetID": "[resourceId(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
     "DevVMSubnetRef": "[concat(variables('DevVMVnetID'), '/subnets/', 'SUBNET_INGENICO')]",
