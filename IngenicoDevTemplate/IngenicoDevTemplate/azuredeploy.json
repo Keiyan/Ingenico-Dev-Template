@@ -1,0 +1,191 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.1",
+  "parameters": {
+    "DevVMAdminUserName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "DevVMAdminPassword": {
+      "type": "securestring"
+    },
+    "DevVMWindowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2008-R2-SP1",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "Windows-Server-Technical-Preview"
+      ]
+    },
+    "storageAccountName": {
+      "type": "string",
+      "defaultValue": "rgdevdotnetdisks"
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "defaultValue": "VNET_INGENICO"
+    },
+    "virtualNetworkResourceGroup": {
+      "type": "string",
+      "defaultValue": "RG_INGENICO_Network"
+    },
+    "scriptsLocation": {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/Keiyan/Ingenico-Dev-Template/master/IngenicoDevTemplate/scripts/",
+      "metadata": {
+        "description": "Location of powershell scripts"
+      }
+    },
+    "chocoPackages": {
+      "type": "string",
+      "defaultValue": "visualstudio2015professional, notepadplusplus, 7zip, sysinternalsuite", 
+      "metadata": {
+        "description": "List of Chocolatey packages to install separated by a semi-colon eg. linqpad;sysinternals"
+      }
+    }
+
+  },
+  "variables": {
+    "DevVMName": "[concat('DevDotNet', parameters('DevVMAdminUserName'))]",
+    "DevVMImagePublisher": "MicrosoftWindowsServer",
+    "DevVMImageOffer": "WindowsServer",
+    "DevVMOSDiskName": "DevVMOSDisk",
+    "DevVMVmSize": "Standard_DS3_v2",
+    "DevVMVnetID": "[resourceId(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "DevVMSubnetRef": "[concat(variables('DevVMVnetID'), '/subnets/', 'SUBNET_INGENICO')]",
+    "DevVMNicNsgRef": "[resourceId('Microsoft.Network/networkSecurityGroups', 'Test-Vm-Dev-nsg')]",
+    "DevVMStorageAccountContainerName": "vhds",
+    "DevVMNicName": "[concat(variables('DevVMName'), 'NetworkInterface')]",
+    "SetupChocolateyScriptFileName": "SetupChocolatey.ps1",
+    "DevVMPublicIPName": "[concat(variables('DevVMName'), 'PublicIP')]"
+
+  },
+  "resources": [
+    {
+      "name": "[variables('DevVMNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "westeurope",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('DevVMPublicIPName'))]"
+      ],
+      "tags": {
+        "displayName": "DevVMNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('DevVMSubnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('DevVMPublicIPName'))]"
+              }
+            }
+          }
+        ],
+        "dnsSettings": {
+          "dnsServers": [
+            "10.0.1.10"
+          ]
+        },
+        "enableIPForwarding": false,
+        "networkSecurityGroup": {
+          "id": "[variables('DevVMNicNsgRef')]"
+        }
+      }
+    },
+    {
+      "name": "[variables('DevVMName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "westeurope",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('DevVMNicName'))]"
+      ],
+      "tags": {
+        "displayName": "DevVM"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('DevVMVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('DevVMName')]",
+          "adminUsername": "[parameters('DevVMAdminUsername')]",
+          "adminPassword": "[parameters('DevVMAdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('DevVMImagePublisher')]",
+            "offer": "[variables('DevVMImageOffer')]",
+            "sku": "[parameters('DevVMWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "DevVMOSDisk",
+            "vhd": {
+              "uri": "[concat('https://', parameters('storageAccountName'), '.blob.core.windows.net/', variables('DevVMStorageAccountContainerName'), '/', variables('DevVMOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('DevVMNicName'))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "name": "SetupChocolatey",
+          "type": "extensions",
+          "location": "westeurope",
+          "apiVersion": "2015-06-15",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', variables('DevVMName'))]"
+          ],
+          "tags": {
+            "displayName": "SetupChocolatey"
+          },
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.4",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "fileUris": [
+                "[concat(parameters('scriptsLocation'),variables('SetupChocolateyScriptFileName'))]"
+              ],
+              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('SetupChocolateyScriptFileName'),' -chocoPackages ',parameters('chocoPackages'))]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "[variables('DevVMPublicIPName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "westeurope",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "DevVMPublicIP"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static"
+      }
+    }
+
+  ],
+    "outputs": { }
+  }
+
