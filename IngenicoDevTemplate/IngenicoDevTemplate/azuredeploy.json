@@ -128,7 +128,7 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "DevVMOSDisk",
+            "name": "[variables('DevVMOSDiskName')]",
             "vhd": {
               "uri": "[concat('https://', parameters('storageAccountName'), '.blob.core.windows.net/', variables('DevVMStorageAccountContainerName'), '/', variables('DevVMOSDiskName'), '.vhd')]"
             },
