@@ -29,7 +29,7 @@
     "labSubnetName": "SUBNET_INGENICO",
     "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
     "labVirtualNetworkName": "VNET__INGENICO",
-    "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
+    "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), variables('newVMName'))]",
     "vmName": "[concat(parameters('labName'), '/', variables('newVMName'))]"
   },
   "resources": [
