@@ -25,7 +25,7 @@
     }
   },
   "variables": {
-    "newVMName": "[concat('Dev_', parameters('userName'))]",
+    "newVMName": "[concat('Dev', parameters('userName'))]",
     "labSubnetName": "SUBNET_INGENICO",
     "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
     "labVirtualNetworkName": "VNET__INGENICO",
