@@ -1,191 +1,91 @@
 {
-  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.1",
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
   "parameters": {
-    "DevVMAdminUserName": {
+    "labName": {
       "type": "string",
-      "minLength": 1
+      "defaultValue": "Lab_DevDotNet"
     },
-    "DevVMAdminPassword": {
+    "size": {
+      "type": "string",
+      "defaultValue": "Standard_DS3_v2"
+    },
+    "userName": {
+      "type": "string",
+      "metadata": {
+        "description":  "The user name of the developper that will use this virtual machine."
+      }
+    },
+    "password": {
       "type": "securestring"
     },
-    "DevVMWindowsOSVersion": {
+    "Install_Chocolatey_Packages.packages": {
       "type": "string",
-      "defaultValue": "2008-R2-SP1",
-      "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "Windows-Server-Technical-Preview"
-      ]
-    },
-    "storageAccountName": {
-      "type": "string",
-      "defaultValue": "rgdevdotnetdisks"
-    },
-    "virtualNetworkName": {
-      "type": "string",
-      "defaultValue": "VNET_INGENICO"
-    },
-    "virtualNetworkResourceGroup": {
-      "type": "string",
-      "defaultValue": "RG_INGENICO_Network"
-    },
-    "scriptsLocation": {
-      "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/Keiyan/Ingenico-Dev-Template/master/IngenicoDevTemplate/IngenicoDevTemplate/CustomScripts/",
-      "metadata": {
-        "description": "Location of powershell scripts"
-      }
-    },
-    "chocoPackages": {
-      "type": "string",
-      "defaultValue": "visualstudio2015professional, notepadplusplus, 7zip, sysinternalsuite", 
-      "metadata": {
-        "description": "List of Chocolatey packages to install separated by a semi-colon eg. linqpad;sysinternals"
-      }
+      "defaultValue": "visualstudio2015professional"
     }
-
   },
   "variables": {
-    "DevVMName": "[concat('DevDotNet', parameters('DevVMAdminUserName'))]",
-    "DevVMImagePublisher": "MicrosoftWindowsServer",
-    "DevVMImageOffer": "WindowsServer",
-    "DevVMOSDiskName": "[concat(variables('DevVMName'), 'OSDisk')]",
-    "DevVMVmSize": "Standard_DS3_v2",
-    "DevVMVnetID": "[resourceId(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-    "DevVMSubnetRef": "[concat(variables('DevVMVnetID'), '/subnets/', 'SUBNET_INGENICO')]",
-    "DevVMNicNsgRef": "[resourceId('Microsoft.Network/networkSecurityGroups', 'Test-Vm-Dev-nsg')]",
-    "DevVMStorageAccountContainerName": "vhds",
-    "DevVMNicName": "[concat(variables('DevVMName'), 'NetworkInterface')]",
-    "SetupChocolateyScriptFileName": "SetupChocolatey.ps1",
-    "DevVMPublicIPName": "[concat(variables('DevVMName'), 'PublicIP')]"
-
+    "newVMName": "[concat('Dev_', parameters('userName'))]",
+    "labSubnetName": "SUBNET_INGENICO",
+    "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
+    "labVirtualNetworkName": "VNET__INGENICO",
+    "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), parameters('newVMName'))]",
+    "vmName": "[concat(parameters('labName'), '/', variables('newVMName'))]"
   },
   "resources": [
     {
-      "name": "[variables('DevVMNicName')]",
-      "type": "Microsoft.Network/networkInterfaces",
-      "location": "westeurope",
-      "apiVersion": "2015-06-15",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses', variables('DevVMPublicIPName'))]"
-      ],
-      "tags": {
-        "displayName": "DevVMNic"
-      },
+      "apiVersion": "2016-05-15",
+      "type": "Microsoft.DevTestLab/labs/virtualmachines",
+      "name": "[variables('vmName')]",
+      "location": "[resourceGroup().location]",
       "properties": {
-        "ipConfigurations": [
+        "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
+        "notes": "Windows Server 2008 R2 SP1",
+        "galleryImageReference": {
+          "offer": "WindowsServer",
+          "publisher": "MicrosoftWindowsServer",
+          "sku": "2008-R2-SP1",
+          "osType": "Windows",
+          "version": "latest"
+        },
+        "size": "[parameters('size')]",
+        "userName": "[parameters('userName')]",
+        "password": "[parameters('password')]",
+        "isAuthenticationWithSshKey": false,
+        "artifacts": [
           {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "subnet": {
-                "id": "[variables('DevVMSubnetRef')]"
-              },
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('DevVMPublicIPName'))]"
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-powershell3')]"
+          },
+          {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-7zip')]"
+          },
+          {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-notepadplusplus')]"
+          },
+          {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-sysinternals')]"
+          },
+          {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-chocolatey')]",
+            "parameters": [
+              {
+                "name": "packages",
+                "value": "[parameters('Install_Chocolatey_Packages.packages')]"
               }
-            }
+            ]
           }
         ],
-        "dnsSettings": {
-          "dnsServers": [
-            "10.0.1.10"
-          ]
-        },
-        "enableIPForwarding": false,
-        "networkSecurityGroup": {
-          "id": "[variables('DevVMNicNsgRef')]"
-        }
-      }
-    },
-    {
-      "name": "[variables('DevVMName')]",
-      "type": "Microsoft.Compute/virtualMachines",
-      "location": "westeurope",
-      "apiVersion": "2015-06-15",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces', variables('DevVMNicName'))]"
-      ],
-      "tags": {
-        "displayName": "DevVM"
-      },
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "[variables('DevVMVmSize')]"
-        },
-        "osProfile": {
-          "computerName": "[variables('DevVMName')]",
-          "adminUsername": "[parameters('DevVMAdminUsername')]",
-          "adminPassword": "[parameters('DevVMAdminPassword')]"
-        },
-        "storageProfile": {
-          "imageReference": {
-            "publisher": "[variables('DevVMImagePublisher')]",
-            "offer": "[variables('DevVMImageOffer')]",
-            "sku": "[parameters('DevVMWindowsOSVersion')]",
-            "version": "latest"
-          },
-          "osDisk": {
-            "name": "[variables('DevVMOSDiskName')]",
-            "vhd": {
-              "uri": "[concat('https://', parameters('storageAccountName'), '.blob.core.windows.net/', variables('DevVMStorageAccountContainerName'), '/', variables('DevVMOSDiskName'), '.vhd')]"
-            },
-            "caching": "ReadWrite",
-            "createOption": "FromImage"
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('DevVMNicName'))]"
-            }
-          ]
-        }
-      },
-      "resources": [
-        {
-          "name": "SetupChocolatey",
-          "type": "extensions",
-          "location": "westeurope",
-          "apiVersion": "2015-06-15",
-          "dependsOn": [
-            "[resourceId('Microsoft.Compute/virtualMachines', variables('DevVMName'))]"
-          ],
-          "tags": {
-            "displayName": "SetupChocolatey"
-          },
-          "properties": {
-            "publisher": "Microsoft.Azure.Extensions",
-            "type": "CustomScriptExtension",
-            "typeHandlerVersion": "2.0",
-            "autoUpgradeMinorVersion": true,
-            "settings": {
-              "fileUris": [
-                "[concat(parameters('scriptsLocation'),variables('SetupChocolateyScriptFileName'))]"
-              ],
-              "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('SetupChocolateyScriptFileName'),' -chocoPackages ',parameters('chocoPackages'))]"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "[variables('DevVMPublicIPName')]",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "location": "westeurope",
-      "apiVersion": "2015-06-15",
-      "dependsOn": [],
-      "tags": {
-        "displayName": "DevVMPublicIP"
-      },
-      "properties": {
-        "publicIPAllocationMethod": "Static"
+        "labSubnetName": "[variables('labSubnetName')]",
+        "disallowPublicIpAddress": false,
+        "storageType": "Premium",
+        "allowClaim": true
       }
     }
-
   ],
-    "outputs": { }
+  "outputs": {
+    "labVMId": {
+      "type": "string",
+      "value": "[variables('vmId')]"
+    }
   }
-
+}
