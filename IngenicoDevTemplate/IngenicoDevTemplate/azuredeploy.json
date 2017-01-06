@@ -40,11 +40,11 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
-        "notes": "Windows Server 2008 R2 SP1",
+        "notes": "Windows Server 2012 R2 Datacenter",
         "galleryImageReference": {
           "offer": "WindowsServer",
           "publisher": "MicrosoftWindowsServer",
-          "sku": "2008-R2-SP1",
+          "sku": "2012-R2-Datacenter",
           "osType": "Windows",
           "version": "latest"
         },
@@ -53,12 +53,6 @@
         "password": "[parameters('password')]",
         "isAuthenticationWithSshKey": false,
         "artifacts": [
-          {
-            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-powershell3')]"
-          },
-          {
-            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-powershell3')]"
-          },
           {
             "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-7zip')]"
           },
