@@ -48,8 +48,8 @@
     "labVirtualNetworkName": "VNET__INGENICO",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), variables('newVMName'))]",
     "vmName": "[concat(parameters('labName'), '/', variables('newVMName'))]",
-    "Run_PowerShell.scriptFileUris": "[[\"https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/visual-studio-dev-vm-chocolatey/scripts/SetupChocolatey.ps1\"]",
-    "Run_PowerShell.scriptToRun": "SetupChocolatey.ps1",
+    "Run_PowerShell.scriptFileUris": "[[\"https://raw.githubusercontent.com/Keiyan/Ingenico-Dev-Template/master/IngenicoDevTemplate/IngenicoDevTemplate/Set-ChocolateyPackage.ps1\"]",
+    "Run_PowerShell.scriptToRun": "Set-ChocolateyPackage.ps1",
     "Run_PowerShell.scriptArguments": "[concat('-chocoPackages \"', parameters('Chocolatey.Packages'), '\"')]"
   },
   "resources": [
