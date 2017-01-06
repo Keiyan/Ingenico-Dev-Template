@@ -4,11 +4,22 @@
   "parameters": {
     "labName": {
       "type": "string",
-      "defaultValue": "Lab_DevDotNet"
+      "defaultValue": "Lab_DevDotNet",
+      "metadata": {
+        "description": "DevTest Lab name. Use the one allocated to your team."
+      }
     },
     "size": {
       "type": "string",
-      "defaultValue": "Standard_DS3_v2"
+      "defaultValue": "Standard_DS3_v2",
+      "allowedValues": [
+        "Standard_DS1_v2",
+        "Standard_DS2_v2",
+        "Standard_DS3_v2"
+      ],
+      "metadata": {
+        "description": "VM Size."
+      }
     },
     "userName": {
       "type": "string",
@@ -17,11 +28,17 @@
       }
     },
     "password": {
-      "type": "securestring"
+      "type": "securestring",
+      "metadata": {
+        "description": "The password that will be set for the developper account."
+      }
     },
-    "Install_Chocolatey_Packages.packages": {
+    "Chocolatey.Packages": {
       "type": "string",
-      "defaultValue": "visualstudio2015professional"
+      "defaultValue": "visualstudio2015professional;7zip;notepadplusplus;sysinternals",
+      "metadata": {
+        "description": "Chocolatey packages that will be installed to this development machine. Feel free to add some if needed. Use ; (semicolumn) as a separator."
+      }
     }
   },
   "variables": {
@@ -30,7 +47,10 @@
     "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
     "labVirtualNetworkName": "VNET__INGENICO",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), variables('newVMName'))]",
-    "vmName": "[concat(parameters('labName'), '/', variables('newVMName'))]"
+    "vmName": "[concat(parameters('labName'), '/', variables('newVMName'))]",
+    "Run_PowerShell.scriptFileUris": "[[\"https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/visual-studio-dev-vm-chocolatey/scripts/SetupChocolatey.ps1\"]",
+    "Run_PowerShell.scriptToRun": "SetupChocolatey.ps1",
+    "Run_PowerShell.scriptArguments": "[concat('-chocoPackages \"', parameters('Chocolatey.Packages'), '\"')]"
   },
   "resources": [
     {
@@ -40,11 +60,11 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
-        "notes": "Windows Server 2012 R2 Datacenter",
+        "notes": "Windows Server 2008 R2 SP1",
         "galleryImageReference": {
           "offer": "WindowsServer",
           "publisher": "MicrosoftWindowsServer",
-          "sku": "2012-R2-Datacenter",
+          "sku": "2008-R2-SP1",
           "osType": "Windows",
           "version": "latest"
         },
@@ -54,20 +74,19 @@
         "isAuthenticationWithSshKey": false,
         "artifacts": [
           {
-            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-7zip')]"
-          },
-          {
-            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-notepadplusplus')]"
-          },
-          {
-            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-sysinternals')]"
-          },
-          {
-            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-chocolatey')]",
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-run-powershell')]",
             "parameters": [
               {
-                "name": "packages",
-                "value": "[parameters('Install_Chocolatey_Packages.packages')]"
+                "name": "scriptFileUris",
+                "value": "[variables('Run_PowerShell.scriptFileUris')]"
+              },
+              {
+                "name": "scriptToRun",
+                "value": "[variables('Run_PowerShell.scriptToRun')]"
+              },
+              {
+                "name": "scriptArguments",
+                "value": "[variables('Run_PowerShell.scriptArguments')]"
               }
             ]
           }
