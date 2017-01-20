@@ -92,7 +92,7 @@
           }
         ],
         "labSubnetName": "[variables('labSubnetName')]",
-        "disallowPublicIpAddress": true,
+        "disallowPublicIpAddress": false,
         "storageType": "Premium",
         "allowClaim": true
       }
