@@ -6,7 +6,7 @@ iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.p
 
 # Create temp folder because normal one is in C:\Windows and that can cause problems
 New-Item -Path 'C:\Temp' -ItemType Directory | Out-Null
-$env:TEMP = 'C:\Temp'
+[Environment]::SetEnvironmentVariable('TEMP', 'C:\Temp') #make the change permanent
 
 $chocoPackages.Split(";") | ForEach {
     $command = "cinst " + $_ + " -y -force"
