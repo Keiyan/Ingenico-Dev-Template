@@ -6,7 +6,7 @@ Param(
 
 # Values mentioned below needs to be edited
 
-$DatabaseServer = “.\SQLEXPRESS”; #SPecify the instance name if SQL is not installed on default instance
+$DatabaseServer = '.\SQLEXPRESS'; #SPecify the instance name if SQL is not installed on default instance
 $FarmName = “Ingenico”;
 
 $ConfigDB = $FarmName+“_ConfigDB”;
