@@ -47,7 +47,7 @@
     },
     "Chocolatey.Packages": {
       "type": "string",
-      "defaultValue": "visualstudio2015professional;mssqlserver2014express;7zip;notepadplusplus;sysinternals",
+      "defaultValue": "7zip;notepadplusplus;sysinternals;VisualStudio2015Professional;MsSqlServer2014Express;MsSqlServerManagementStudio2014Express",
       "metadata": {
         "description": "Chocolatey packages that will be installed to this development machine. Feel free to add some if needed. Use ; (semicolumn) as a separator."
       }
