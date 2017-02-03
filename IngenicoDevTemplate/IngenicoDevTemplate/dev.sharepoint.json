@@ -24,7 +24,7 @@
     "userName": {
       "type": "string",
       "metadata": {
-        "description":  "The user name of the developper that will use this virtual machine."
+        "description": "The user name of the developper that will use this virtual machine."
       }
     },
     "password": {
@@ -33,9 +33,21 @@
         "description": "The password that will be set for the developper account."
       }
     },
+    "domainJoinUser": {
+      "type": "string",
+      "metadata": {
+        "description": "The user name of the developper that will use this virtual machine."
+      }
+    },
+    "domainJoinPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password that will be set for the developper account."
+      }
+    },
     "Chocolatey.Packages": {
       "type": "string",
-      "defaultValue": "visualstudio2015professional;mssqlserver2014express;7zip;notepadplusplus;sysinternals",
+      "defaultValue": "visualstudio2015professional;7zip;notepadplusplus;sysinternals",
       "metadata": {
         "description": "Chocolatey packages that will be installed to this development machine. Feel free to add some if needed. Use ; (semicolumn) as a separator."
       }
@@ -51,9 +63,8 @@
     "Run_PowerShell.scriptFileUris": "[[\"https://raw.githubusercontent.com/Keiyan/Ingenico-Dev-Template/master/IngenicoDevTemplate/IngenicoDevTemplate/Set-ChocolateyPackage.ps1\"]",
     "Run_PowerShell.scriptToRun": "Set-ChocolateyPackage.ps1",
     "Run_PowerShell.scriptArguments": "[concat('-chocoPackages \"', parameters('Chocolatey.Packages'), '\"')]",
-    "Active_Directory_Domain_Join.domainName": "dev.ingenico.azure",
-    "Active_Directory_Domain_Join.domainOU": "CN=Computers,DC=dev,DC=ingenico,DC=azure",
-    "Active_Directory_Domain_Join.domainJoinOptions": "3"
+    "Run_PowerShell.domainJoin.script": "Join-Domain.ps1",
+    "Run_PowerShell.domainJoin.arguments": "[concat('-DomainUserName ', parameters('domainJoinUser'), ' -DomainUserPassword ', parameters('domainJoinPassword'))]"
   },
   "resources": [
     {
@@ -94,27 +105,19 @@
             ]
           },
           {
-            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-domain-join')]",
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-run-powershell')]",
             "parameters": [
               {
-                "name": "domainName",
-                "value": "[variables('Active_Directory_Domain_Join.domainName')]"
+                "name": "scriptFileUris",
+                "value": "[variables('Run_PowerShell.scriptFileUris')]"
               },
               {
-                "name": "domainOU",
-                "value": "[variables('Active_Directory_Domain_Join.domainOU')]"
+                "name": "scriptToRun",
+                "value": "[variables('Run_PowerShell.domainJoin.script')]"
               },
               {
-                "name": "domainJoinUser",
-                "value": "[parameters('userName')]"
-              },
-              {
-                "name": "domainJoinUserPassword",
-                "value": "[parameters('password')]"
-              },
-              {
-                "name": "domainJoinOptions",
-                "value": "[variables('Active_Directory_Domain_Join.domainJoinOptions')]"
+                "name": "scriptArguments",
+                "value": "[variables('Run_PowerShell.domainJoin.arguments')]"
               }
             ]
           }

@@ -33,6 +33,7 @@
     </None>
     <Content Include="Deploy-AzureResourceGroup.ps1" />
     <Content Include="README.md" />
+    <None Include="Join-Domain.ps1" />
     <None Include="Set-ChocolateyPackage.ps1" />
   </ItemGroup>
   <Target Name="GetReferenceAssemblyPaths" />
