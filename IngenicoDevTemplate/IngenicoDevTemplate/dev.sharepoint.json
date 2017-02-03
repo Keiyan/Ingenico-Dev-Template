@@ -60,7 +60,7 @@
     "labVirtualNetworkName": "VNET__INGENICO",
     "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), variables('newVMName'))]",
     "vmName": "[concat(parameters('labName'), '/', variables('newVMName'))]",
-    "Run_PowerShell.baseUri": "https://raw.githubusercontent.com/Keiyan/Ingenico-Dev-Template/master/IngenicoDevTemplate/IngenicoDevTemplate/",
+    "Run_PowerShell.baseUri": "[[\"https://raw.githubusercontent.com/Keiyan/Ingenico-Dev-Template/master/IngenicoDevTemplate/IngenicoDevTemplate/",
     "Run_PowerShell.install.script": "Set-ChocolateyPackage.ps1",
     "Run_PowerShell.install.arguments": "[concat('-chocoPackages \"', parameters('Chocolatey.Packages'), '\"')]",
     "Run_PowerShell.domainJoin.script": "Join-Domain.ps1",
@@ -92,7 +92,7 @@
             "parameters": [
               {
                 "name": "scriptFileUris",
-                "value": "[concat(variables('Run_PowerShell.baseUri'), variables('Run_PowerShell.install.script'))]"
+                "value": "[concat(variables('Run_PowerShell.baseUri'), variables('Run_PowerShell.install.script'),'\"]')]"
               },
               {
                 "name": "scriptToRun",
@@ -109,7 +109,7 @@
             "parameters": [
               {
                 "name": "scriptFileUris",
-                "value": "[concat(variables('Run_PowerShell.baseUri'), variables('Run_PowerShell.domainJoin.script'))]"
+                "value": "[concat(variables('Run_PowerShell.baseUri'), variables('Run_PowerShell.domainJoin.script'),'\"]')]"
               },
               {
                 "name": "scriptToRun",
