@@ -28,6 +28,7 @@
     <Content Include="dev.sharepoint.json" />
     <Content Include="azuredeploy.parameters.json" />
     <Content Include="azuredeploy.json" />
+    <None Include="Configure-Sharepoint.ps1" />
     <None Include="Deployment.targets">
       <Visible>False</Visible>
     </None>

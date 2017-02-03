@@ -65,7 +65,10 @@
     "Run_PowerShell.install.arguments": "[concat('-chocoPackages \"', parameters('Chocolatey.Packages'), '\"')]",
     "Run_PowerShell.domainJoin.uri": "[[\"https://raw.githubusercontent.com/Keiyan/Ingenico-Dev-Template/master/IngenicoDevTemplate/IngenicoDevTemplate/Join-Domain.ps1\"]",
     "Run_PowerShell.domainJoin.script": "Join-Domain.ps1",
-    "Run_PowerShell.domainJoin.arguments": "[concat('-DomainUserName ', parameters('domainJoinUser'), ' -DomainUserPassword ', parameters('domainJoinPassword'))]"
+    "Run_PowerShell.domainJoin.arguments": "[concat('-DomainUserName ', parameters('domainJoinUser'), ' -DomainUserPassword ', parameters('domainJoinPassword'))]",
+    "Run_PowerShell.configureSharePoint.uri": "[[\"https://raw.githubusercontent.com/Keiyan/Ingenico-Dev-Template/master/IngenicoDevTemplate/IngenicoDevTemplate/Configure-Sharepoint.ps1\"]",
+    "Run_PowerShell.configureSharePoint.script": "Configure-Sharepoint.ps1",
+    "Run_PowerShell.configureSharePoint.arguments": "[concat('-DomainUserName ', parameters('domainJoinUser'), ' -DomainUserPassword ', parameters('domainJoinPassword'))]"
   },
   "resources": [
     {
@@ -119,6 +122,23 @@
               {
                 "name": "scriptArguments",
                 "value": "[variables('Run_PowerShell.domainJoin.arguments')]"
+              }
+            ]
+          },
+          {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-run-powershell')]",
+            "parameters": [
+              {
+                "name": "scriptFileUris",
+                "value": "[variables('Run_PowerShell.configureSharePoint.uri')]"
+              },
+              {
+                "name": "scriptToRun",
+                "value": "[variables('Run_PowerShell.configureSharePoint.script')]"
+              },
+              {
+                "name": "scriptArguments",
+                "value": "[variables('Run_PowerShell.configureSharePoint.arguments')]"
               }
             ]
           }
