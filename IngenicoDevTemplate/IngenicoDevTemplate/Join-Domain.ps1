@@ -7,7 +7,8 @@ Param(
 )
 
 $ip = (Test-Connection -ComputerName "devsharepointad" -Count 1).IPV4Address.IPAddressToString
-$domainCrendentials = New-Object System.Management.Automation.PSCredential ($DomainUserName, $DomainUserPassword)
+$password = ConvertTo-SecureString $DomainUserPassword -AsPlainText -Force 
+$domainCrendentials = New-Object System.Management.Automation.PSCredential ($DomainUserName, $password)
 
 Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses ($ip)
 Add-Computer -DomainName "dev.ingenico.azure" -Credential $domainCrendentials -Restart
