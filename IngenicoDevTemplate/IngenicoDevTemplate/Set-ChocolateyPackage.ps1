@@ -9,7 +9,7 @@ New-Item -Path 'C:\Temp' -ItemType Directory | Out-Null
 [Environment]::SetEnvironmentVariable('TEMP', 'C:\Temp') #make the change permanent
 
 $chocoPackages.Split(";") | ForEach {
-    $command = "cinst " + $_ + " -y -force"
+    $command = "`$env:TEMP='C:\Temp';cinst " + $_ + " -y -force"
     #$command | Out-File $LogFile -Append
     $sb = [scriptblock]::Create("$command")
 
