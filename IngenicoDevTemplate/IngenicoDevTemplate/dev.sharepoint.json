@@ -1,0 +1,135 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "labName": {
+      "type": "string",
+      "defaultValue": "Lab_DevDotNet",
+      "metadata": {
+        "description": "DevTest Lab name. Use the one allocated to your team."
+      }
+    },
+    "size": {
+      "type": "string",
+      "defaultValue": "Standard_DS3_v2",
+      "allowedValues": [
+        "Standard_DS1_v2",
+        "Standard_DS2_v2",
+        "Standard_DS3_v2"
+      ],
+      "metadata": {
+        "description": "VM Size."
+      }
+    },
+    "userName": {
+      "type": "string",
+      "metadata": {
+        "description":  "The user name of the developper that will use this virtual machine."
+      }
+    },
+    "password": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password that will be set for the developper account."
+      }
+    },
+    "Chocolatey.Packages": {
+      "type": "string",
+      "defaultValue": "visualstudio2015professional;mssqlserver2014express;7zip;notepadplusplus;sysinternals",
+      "metadata": {
+        "description": "Chocolatey packages that will be installed to this development machine. Feel free to add some if needed. Use ; (semicolumn) as a separator."
+      }
+    }
+  },
+  "variables": {
+    "newVMName": "[concat('Dev', parameters('userName'))]",
+    "labSubnetName": "SUBNET_INGENICO",
+    "labVirtualNetworkId": "[resourceId('Microsoft.DevTestLab/labs/virtualnetworks', parameters('labName'), variables('labVirtualNetworkName'))]",
+    "labVirtualNetworkName": "VNET__INGENICO",
+    "vmId": "[resourceId ('Microsoft.DevTestLab/labs/virtualmachines', parameters('labName'), variables('newVMName'))]",
+    "vmName": "[concat(parameters('labName'), '/', variables('newVMName'))]",
+    "Run_PowerShell.scriptFileUris": "[[\"https://raw.githubusercontent.com/Keiyan/Ingenico-Dev-Template/master/IngenicoDevTemplate/IngenicoDevTemplate/Set-ChocolateyPackage.ps1\"]",
+    "Run_PowerShell.scriptToRun": "Set-ChocolateyPackage.ps1",
+    "Run_PowerShell.scriptArguments": "[concat('-chocoPackages \"', parameters('Chocolatey.Packages'), '\"')]",
+    "Active_Directory_Domain_Join.domainName": "dev.ingenico.azure",
+    "Active_Directory_Domain_Join.domainOU": "CN=Computers,DC=dev,DC=ingenico,DC=azure",
+    "Active_Directory_Domain_Join.domainJoinOptions": "3"
+  },
+  "resources": [
+    {
+      "apiVersion": "2016-05-15",
+      "type": "Microsoft.DevTestLab/labs/virtualmachines",
+      "name": "[variables('vmName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "labVirtualNetworkId": "[variables('labVirtualNetworkId')]",
+        "notes": "SharePoint Server 2013 Trial",
+        "galleryImageReference": {
+          "offer": "MicrosoftSharePointServer",
+          "publisher": "MicrosoftSharepoint",
+          "sku": "2013",
+          "osType": "Windows",
+          "version": "latest"
+        },
+        "size": "[parameters('size')]",
+        "userName": "[parameters('userName')]",
+        "password": "[parameters('password')]",
+        "isAuthenticationWithSshKey": false,
+        "artifacts": [
+          {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-run-powershell')]",
+            "parameters": [
+              {
+                "name": "scriptFileUris",
+                "value": "[variables('Run_PowerShell.scriptFileUris')]"
+              },
+              {
+                "name": "scriptToRun",
+                "value": "[variables('Run_PowerShell.scriptToRun')]"
+              },
+              {
+                "name": "scriptArguments",
+                "value": "[variables('Run_PowerShell.scriptArguments')]"
+              }
+            ]
+          },
+          {
+            "artifactId": "[resourceId('Microsoft.DevTestLab/labs/artifactSources/artifacts', parameters('labName'), 'public repo', 'windows-domain-join')]",
+            "parameters": [
+              {
+                "name": "domainName",
+                "value": "[variables('Active_Directory_Domain_Join.domainName')]"
+              },
+              {
+                "name": "domainOU",
+                "value": "[variables('Active_Directory_Domain_Join.domainOU')]"
+              },
+              {
+                "name": "domainJoinUser",
+                "value": "[parameters('userName')]"
+              },
+              {
+                "name": "domainJoinUserPassword",
+                "value": "[parameters('password')]"
+              },
+              {
+                "name": "domainJoinOptions",
+                "value": "[variables('Active_Directory_Domain_Join.domainJoinOptions')]"
+              }
+            ]
+          }
+        ],
+        "labSubnetName": "[variables('labSubnetName')]",
+        "disallowPublicIpAddress": false,
+        "storageType": "Premium",
+        "allowClaim": true
+      }
+    }
+  ],
+  "outputs": {
+    "labVMId": {
+      "type": "string",
+      "value": "[variables('vmId')]"
+    }
+  }
+}
