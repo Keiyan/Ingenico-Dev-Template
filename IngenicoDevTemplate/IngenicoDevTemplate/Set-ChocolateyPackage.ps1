@@ -4,6 +4,10 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 
 iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
 
+# Create temp folder because normal one is in C:\Windows and that can cause problems
+New-Item -Path 'C:\Temp' -ItemType Directory | Out-Null
+$env:TEMP = 'C:\Temp'
+
 $chocoPackages.Split(";") | ForEach {
     $command = "cinst " + $_ + " -y -force"
     #$command | Out-File $LogFile -Append
